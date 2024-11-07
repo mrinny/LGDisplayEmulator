@@ -23,6 +23,7 @@ type Client struct {
 }
 
 func (c *Client) writePump() {
+	slog.Info("starting writePump")
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
@@ -50,6 +51,7 @@ func (c *Client) writePump() {
 }
 
 func (c *Client) readPump() {
+	slog.Info("starting readPump")
 	defer func() {
 		c.hub.unregister <- c
 		c.conn.Close()

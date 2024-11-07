@@ -10,8 +10,10 @@
 <body>
     <h1>LG Display Emulator</h1>
     <div class="container" hx-ext="ws" ws-connect="/ws">
-        
-        <button hx-ws="send:submit" hx-vals='{"action": "AddDisplay"}'>Rock</button>
+        <div>
+            <h2>Displays</h2>
+        </div>
+        <button hx-ws="send:submit" hx-vals='{"action": "AddDisplay"}'>Add Display</button>
     </div>
 </body>
 </html>
