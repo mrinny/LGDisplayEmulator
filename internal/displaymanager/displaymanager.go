@@ -2,6 +2,7 @@ package displaymanager
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/mrinny/LGDisplayEmulator/internal/domain"
 	"github.com/mrinny/LGDisplayEmulator/internal/eventmessenger"
@@ -36,6 +37,7 @@ func (dm *DisplayManager) GetDisplays() []*domain.LGDisplay {
 }
 
 func (dm *DisplayManager) NewDisplay() {
+	slog.Info("(DisplayManager) NewDisplay")
 	var id int
 	for i := 0; i <= len(dm.displays)+1; i++ {
 		_, found := dm.displays[i]

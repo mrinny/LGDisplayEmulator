@@ -20,6 +20,7 @@ func Application(c chan os.Signal) error {
 	dm := displaymanager.New(em)
 
 	hub := webapp.NewHub(em, dm)
+	go hub.Run()
 
 	api := lgdisplayapi.New()
 	err = api.Start()
