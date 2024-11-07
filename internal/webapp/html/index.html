@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LG display emulator</title>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
     <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
 </head>
 <body>
-    <div class="container">
+    <h1>LG Display Emulator</h1>
+    <div class="container" hx-ext="ws" ws-connect="/ws">
         
+        <button hx-ws="send:submit" hx-vals='{"action": "AddDisplay"}'>Rock</button>
     </div>
 </body>
 </html>
