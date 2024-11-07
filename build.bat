@@ -1,0 +1,1 @@
+go build -o bin/lgdisplayemulator.exe ./cmd/lgdisplayemulator/

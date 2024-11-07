@@ -1,4 +1,4 @@
-package lgdisplayemulator
+package lgdisplayapi
 
 import (
 	"context"
@@ -8,11 +8,11 @@ import (
 	"sync"
 )
 
-func New() *LGDisplayEmulator {
-	return &LGDisplayEmulator{}
+func New() *LGDisplayAPI {
+	return &LGDisplayAPI{}
 }
 
-type LGDisplayEmulator struct {
+type LGDisplayAPI struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 	mu     sync.Mutex
@@ -22,7 +22,7 @@ type LGDisplayEmulator struct {
 	port   int
 }
 
-func (l *LGDisplayEmulator) Start() error {
+func (l *LGDisplayAPI) Start() error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if l.active {
@@ -33,7 +33,7 @@ func (l *LGDisplayEmulator) Start() error {
 	return nil
 }
 
-func (l *LGDisplayEmulator) Stop() error {
+func (l *LGDisplayAPI) Stop() error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if !l.active {
@@ -48,13 +48,13 @@ func (l *LGDisplayEmulator) Stop() error {
 	return nil
 }
 
-func (l *LGDisplayEmulator) Running() bool {
+func (l *LGDisplayAPI) Running() bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	return l.active
 }
 
-func (l *LGDisplayEmulator) service() {
+func (l *LGDisplayAPI) service() {
 	var err error
 	l.conn, err = net.Listen("tcp4", fmt.Sprintf("%s:%d", l.host, l.port))
 	if err != nil {
@@ -87,7 +87,7 @@ func (l *LGDisplayEmulator) service() {
 
 }
 
-func (l *LGDisplayEmulator) handleClient(clientConn net.Conn) {
+func (l *LGDisplayAPI) handleClient(clientConn net.Conn) {
 	defer func(conn net.Conn) {
 		err := conn.Close()
 		if err != nil {
