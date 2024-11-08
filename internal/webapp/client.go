@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	writeWait      = 1 * time.Second
+	writeWait      = 10 * time.Second
 	pongWait       = 10 * time.Second
 	pingPeriod     = (pongWait * 9) / 10
 	maxMessageSize = 512
@@ -24,7 +24,7 @@ type Client struct {
 }
 
 func (c *Client) writePump() {
-	slog.Info("starting writePump")
+	slog.Info("starting writePump", "id", c.id)
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		slog.Info("write pump closed", "id", c.id)
@@ -44,7 +44,12 @@ func (c *Client) writePump() {
 			}
 			n, err := w.Write(msg)
 			if err != nil {
-				slog.Error("error while writing to client", "id", c.id)
+				slog.Error("error while writing to client", "id", c.id, "error", err)
+				return
+			}
+			err = w.Close()
+			if err != nil {
+				slog.Error("error while closing message writer", "id", c.id, "error", err)
 				return
 			}
 			slog.Debug("written bytes to client", "client", c.id, "bytes", n)
@@ -58,7 +63,7 @@ func (c *Client) writePump() {
 }
 
 func (c *Client) readPump() {
-	slog.Info("starting readPump")
+	slog.Info("starting readPump", "id", c.id)
 	defer func() {
 		c.hub.unregister <- c
 		c.conn.Close()
