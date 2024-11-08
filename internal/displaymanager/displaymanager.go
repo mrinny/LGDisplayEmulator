@@ -3,6 +3,7 @@ package displaymanager
 import (
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/mrinny/LGDisplayEmulator/internal/domain"
@@ -10,6 +11,7 @@ import (
 )
 
 type DisplayManager struct {
+	sync.RWMutex
 	displays       map[int]*domain.LGDisplay
 	eventmessenger *eventmessenger.EventMessenger
 }
@@ -59,6 +61,7 @@ func (dm *DisplayManager) GetDisplays() []*domain.LGDisplay {
 
 func (dm *DisplayManager) NewDisplay() {
 	slog.Info("(DisplayManager) NewDisplay")
+	dm.Lock()
 	var id int
 	for i := 1; i <= len(dm.displays)+1; i++ {
 		_, found := dm.displays[i]
@@ -69,6 +72,7 @@ func (dm *DisplayManager) NewDisplay() {
 	}
 	disp := domain.NewLGDisplay(id)
 	dm.displays[id] = disp
+	dm.Unlock()
 	for _, ev := range disp.Events() {
 		dm.eventmessenger.Publish(ev)
 	}
