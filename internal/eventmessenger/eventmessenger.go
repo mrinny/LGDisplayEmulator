@@ -18,7 +18,7 @@ func (em *EventMessenger) Subscribe(key string, cb domain.EventCallback) {
 		cbs = append(cbs, cb)
 	} else {
 		cbs = make([]domain.EventCallback, 1)
-		cbs[1] = cb
+		cbs[0] = cb
 		em.subs[key] = cbs
 	}
 }

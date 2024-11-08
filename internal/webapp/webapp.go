@@ -12,6 +12,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/mrinny/LGDisplayEmulator/internal/domain"
 )
@@ -110,13 +111,22 @@ func (wa *WebApp) servews(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	cl := &Client{
+		id:   uuid.NewString(),
 		conn: conn,
 		send: make(chan []byte, 25),
 		hub:  wa.hub,
 	}
+	wa.hub.register <- cl
 
 	go cl.writePump()
 	go cl.readPump()
+}
+
+type DisplayDto struct {
+	Id     int
+	Serial string
+	Power  string
+	Input  string
 }
 
 func renderDisplayTemplate(dp domain.LGDisplay) []byte {
@@ -125,8 +135,35 @@ func renderDisplayTemplate(dp domain.LGDisplay) []byte {
 		slog.Error(err.Error())
 		return []byte{}
 	}
+	data := DisplayDto{
+		Id:     dp.GetId(),
+		Serial: dp.GetSerial(),
+		Power:  string(dp.GetPowerState()),
+		Input:  string(dp.GetInput()),
+	}
 	var result bytes.Buffer
-	err = tmpl.Execute(&result, dp)
+	err = tmpl.Execute(&result, data)
+	if err != nil {
+		slog.Error(err.Error())
+		return []byte{}
+	}
+	return result.Bytes()
+}
+
+func renderDisplayUpdateTemplate(dp domain.LGDisplay) []byte {
+	tmpl, err := template.ParseFS(staticDir, "templates/displayupdate.html")
+	if err != nil {
+		slog.Error(err.Error())
+		return []byte{}
+	}
+	data := DisplayDto{
+		Id:     dp.GetId(),
+		Serial: dp.GetSerial(),
+		Power:  string(dp.GetPowerState()),
+		Input:  string(dp.GetInput()),
+	}
+	var result bytes.Buffer
+	err = tmpl.Execute(&result, data)
 	if err != nil {
 		slog.Error(err.Error())
 		return []byte{}

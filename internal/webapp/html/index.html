@@ -6,11 +6,12 @@
     <title>LG display emulator</title>
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
     <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
     <h1>LG Display Emulator</h1>
     <div class="container" hx-ext="ws" ws-connect="/ws">
-        <div>
+        <div id="displays">
             <h2>Displays</h2>
         </div>
         <button hx-ws="send:submit" hx-vals='{"action": "AddDisplay"}'>Add Display</button>

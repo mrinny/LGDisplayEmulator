@@ -1,18 +1,30 @@
-<div>
-    <li>
-        <h1>ID</h1>
-        <p>{{.Id}}</p>
-    </li>
-    <li>
-        <h1>Serial</h1>
-        <p>{{.Serial}}</p>
-    </li>
-    <li>
-        <h1>Power</h1>
-        <p>{{.Power}}</p>
-    </li>
-    <li>
-        <h1>Input</h1>
-        <p>{{.Input}}</p>
-    </li>
+<div id="displays" hx-swap-oob="beforeend">
+    <div id="display-{{.Id}}" class="displaycard">
+        <table>
+            <tr>
+                <td>ID</td>
+                <td>{{.Id}}</td>
+            </tr>
+            <tr>
+                <td>Serial</td>
+                <td>{{.Serial}}</td>
+            </tr>
+            <tr>
+                <td>Power</td>
+                <td>{{.Power}}</td>
+            </tr>
+            <tr>
+                <td>Input</td>
+                <td>{{.Input}}</td>
+            </tr>
+        </table>
+        <button hx-ws="send:submit" hx-vals='{"action": "PowerOnDisplay", "id": {{.Id}}}'>PowerOn</button>
+        <button hx-ws="send:submit" hx-vals='{"action": "PowerOffDisplay", "id": {{.Id}}}'>PowerOff</button>
+        <button hx-ws="send:submit" hx-vals='{"action": "PowerRestartDisplay", "id": {{.Id}}}'>Restart</button>
+        <br/>
+        <button hx-ws="send:submit" hx-vals='{"action": "SetInput", "id": {{.Id}}, "input": "HDMI1"}'>HDMI1</button>
+        <button hx-ws="send:submit" hx-vals='{"action": "SetInput", "id": {{.Id}}, "input": "HDMI2"}'>HDMI2</button>
+        <button hx-ws="send:submit" hx-vals='{"action": "SetInput", "id": {{.Id}}, "input": "HDMI3"}'>HDMI3</button>
+        <button hx-ws="send:submit" hx-vals='{"action": "SetInput", "id": {{.Id}}, "input": "DISPLAYPORT1"}'>DisplayPort1</button>
+    </div>
 </div>

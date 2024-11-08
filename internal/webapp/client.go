@@ -10,13 +10,14 @@ import (
 )
 
 const (
-	writeWait      = 10 * time.Second
-	pongWait       = 60 * time.Second
+	writeWait      = 1 * time.Second
+	pongWait       = 10 * time.Second
 	pingPeriod     = (pongWait * 9) / 10
 	maxMessageSize = 512
 )
 
 type Client struct {
+	id   string
 	conn *websocket.Conn
 	send chan []byte
 	hub  *Hub
@@ -26,6 +27,7 @@ func (c *Client) writePump() {
 	slog.Info("starting writePump")
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
+		slog.Info("write pump closed", "id", c.id)
 		ticker.Stop()
 		c.conn.Close()
 	}()
@@ -40,7 +42,12 @@ func (c *Client) writePump() {
 			if err != nil {
 				return
 			}
-			w.Write(msg)
+			n, err := w.Write(msg)
+			if err != nil {
+				slog.Error("error while writing to client", "id", c.id)
+				return
+			}
+			slog.Debug("written bytes to client", "client", c.id, "bytes", n)
 		case <-ticker.C:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
@@ -85,4 +92,6 @@ func (c *Client) readPump() {
 
 type ActionRequest struct {
 	Action string `json:"action"`
+	Id     int    `json:"id"`
+	Input  string `json:"input"`
 }
