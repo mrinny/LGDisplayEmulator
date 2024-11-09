@@ -1,0 +1,6 @@
+.displaycard {
+    margin: 5px;
+    border: 2px;
+    border-style: solid;
+    width: fit-content;
+}

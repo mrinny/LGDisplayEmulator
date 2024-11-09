@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"log/slog"
+	"reflect"
 	"sync"
 
 	"github.com/mrinny/LGDisplayEmulator/internal/displaymanager"
@@ -36,6 +37,7 @@ func NewHub(
 }
 
 func (h *Hub) Run() {
+	h.subscribeDomain()
 	for {
 		select {
 		case cl := <-h.register:
@@ -58,6 +60,7 @@ func (h *Hub) Run() {
 				select {
 				case cl.send <- msg:
 				default:
+					slog.Warn("removing client")
 					close(cl.send)
 					delete(h.clients, cl)
 				}
@@ -65,8 +68,19 @@ func (h *Hub) Run() {
 			h.RUnlock()
 		case req := <-h.actions:
 			slog.Info("handing action")
-			if req.Action == "AddDisplay" {
+			switch req.Action {
+			case "AddDisplay":
 				h.displaymanager.NewDisplay()
+			case "PowerOnDisplay":
+				h.displaymanager.PowerOnDisplay(req.Id)
+			case "PowerOffDisplay":
+				h.displaymanager.PowerOffDisplay(req.Id)
+			case "PowerRestartDisplay":
+				h.displaymanager.RestartDisplay(req.Id)
+			case "SetInput":
+				h.displaymanager.SetInput(req.Id, req.Input)
+			default:
+				slog.Warn("unhandled action", "action", req.Action)
 			}
 		}
 	}
@@ -79,26 +93,27 @@ func (h *Hub) subscribeDomain() {
 }
 
 func (h *Hub) HandleDomainEvent(ev domain.Event) {
+	slog.Info("received domain event", "event_type", ev.Key())
 	switch event := ev.(type) {
-	case domain.NewDisplayEvent:
+	case *domain.NewDisplayEvent:
 		display, err := h.displaymanager.GetDisplay(event.Id)
 		if err != nil {
 			slog.Warn("display not found")
 		}
 		h.broadcast <- renderDisplayTemplate(*display)
-	case domain.DisplayPowerStateChangedEvent:
+	case *domain.DisplayPowerStateChangedEvent:
 		display, err := h.displaymanager.GetDisplay(event.Id)
 		if err != nil {
 			slog.Warn("display not found")
 		}
-		h.broadcast <- renderDisplayTemplate(*display)
-	case domain.DisplayInputChangedEvent:
+		h.broadcast <- renderDisplayUpdateTemplate(*display)
+	case *domain.DisplayInputChangedEvent:
 		display, err := h.displaymanager.GetDisplay(event.Id)
 		if err != nil {
 			slog.Warn("display not found")
 		}
-		h.broadcast <- renderDisplayTemplate(*display)
+		h.broadcast <- renderDisplayUpdateTemplate(*display)
 	default:
-		slog.Warn("unexpected domain event")
+		slog.Warn("unexpected domain event", "type", reflect.TypeOf(ev))
 	}
 }

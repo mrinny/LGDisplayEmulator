@@ -3,6 +3,8 @@ package domain
 import (
 	"fmt"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const LGDisplayRebootTime time.Duration = time.Second * 30
@@ -32,6 +34,7 @@ const (
 
 type LGDisplay struct {
 	id              int
+	serial          string
 	input           LGDisplayInput
 	power           PowerState
 	powerchangetime time.Time
@@ -41,6 +44,7 @@ type LGDisplay struct {
 func NewLGDisplay(id int) *LGDisplay {
 	disp := &LGDisplay{
 		id:              id,
+		serial:          uuid.NewString(),
 		input:           HDMI1,
 		power:           OFF,
 		powerchangetime: time.Now(),
@@ -58,9 +62,35 @@ func (l *LGDisplay) Events() []Event {
 	return l.events
 }
 
+func (l *LGDisplay) FlushEvents() {
+	l.events = make([]Event, 0)
+}
+
+func (l *LGDisplay) GetId() int {
+	return l.id
+}
+
+func (l *LGDisplay) GetSerial() string {
+	return l.serial
+}
+
+func (l *LGDisplay) RestartFinished() bool {
+	return l.power == RESTARTING && time.Since(l.powerchangetime) > LGDisplayRebootTime
+}
+
 func (l *LGDisplay) PowerOn() error {
 	if l.power != OFF {
 		return fmt.Errorf("cannot power on device which is not off")
+	}
+	l.power = ON
+	l.powerchangetime = time.Now()
+	l.AddEvent(&DisplayPowerStateChangedEvent{Id: l.id, NewPowerState: ON})
+	return nil
+}
+
+func (l *LGDisplay) PowerOnAfterRestart() error {
+	if l.power != RESTARTING {
+		return fmt.Errorf("cannot power on device which is not restarting")
 	}
 	l.power = ON
 	l.powerchangetime = time.Now()
@@ -79,15 +109,11 @@ func (l *LGDisplay) PowerOff() error {
 }
 
 func (l *LGDisplay) Restart() error {
-	if l.power != OFF {
+	if l.power != ON {
 		return fmt.Errorf("cannot restart device which is not on")
 	}
 	l.power = RESTARTING
 	l.powerchangetime = time.Now()
-	go func() {
-		time.Sleep(LGDisplayRebootTime)
-		l.PowerOn()
-	}()
 	l.AddEvent(&DisplayPowerStateChangedEvent{Id: l.id, NewPowerState: RESTARTING})
 	return nil
 }
@@ -101,8 +127,12 @@ func (l *LGDisplay) SetInput(input LGDisplayInput) error {
 		return fmt.Errorf("input already set")
 	}
 	l.input = input
-	l.AddEvent(DisplayInputChangedEvent{Id: l.id, NewInput: input})
+	l.AddEvent(&DisplayInputChangedEvent{Id: l.id, NewInput: input})
 	return nil
+}
+
+func (l *LGDisplay) GetInput() LGDisplayInput {
+	return l.input
 }
 
 type NewDisplayEvent struct {
