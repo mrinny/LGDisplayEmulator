@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"net"
 	"sync"
+
+	"github.com/mrinny/LGDisplayEmulator/internal/displaymanager"
 )
 
 func New() *LGDisplayAPI {
@@ -20,6 +22,7 @@ type LGDisplayAPI struct {
 	conn   net.Listener
 	host   string
 	port   int
+	dm     *displaymanager.DisplayManager
 }
 
 func (l *LGDisplayAPI) Start() error {
@@ -94,5 +97,24 @@ func (l *LGDisplayAPI) handleClient(clientConn net.Conn) {
 			slog.Error(err.Error())
 		}
 	}(clientConn)
-
+	commandReader := newCommandReader(clientConn)
+	for {
+		cmd, err := commandReader.Next()
+		if err != nil {
+			slog.Error("failed to read command", "error", err)
+			return
+		}
+		switch cmd.Cmd {
+		case LGPower:
+			switch cmd.Value {
+			case PowerOff:
+			case PowerOn:
+			case PowerRestart:
+			default:
+				slog.Warn("invallid powerstate")
+			}
+		default:
+			slog.Warn("unsupported command")
+		}
+	}
 }
