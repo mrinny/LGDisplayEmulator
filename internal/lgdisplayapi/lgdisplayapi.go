@@ -108,8 +108,11 @@ func (l *LGDisplayAPI) handleClient(clientConn net.Conn) {
 		case LGPower:
 			switch cmd.Value {
 			case PowerOff:
+				l.dm.PowerOffDisplay(cmd.Id)
 			case PowerOn:
+				l.dm.PowerOnDisplay(cmd.Id)
 			case PowerRestart:
+				l.dm.RestartDisplay(cmd.Id)
 			default:
 				slog.Warn("invallid powerstate")
 			}
